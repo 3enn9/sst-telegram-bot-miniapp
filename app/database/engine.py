@@ -44,3 +44,8 @@ def connection(isolation_level=None):
         return wrapper
 
     return decorator
+
+
+async def get_session() -> AsyncSession:
+    async with session_maker() as session:
+        yield session

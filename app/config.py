@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     ADMIN_IDS: List[int]
     DB_URL: str = "postgresql+asyncpg://postgres:asd228asd@localhost:5432/bobcat64_miniapp"
     BASE_SITE: str
+    CHAT_ID: str
 
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")

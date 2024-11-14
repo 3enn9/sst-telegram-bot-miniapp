@@ -14,6 +14,10 @@ from .bot.router import router as bot_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logging.info("Starting bot setup...")
+
+    logging.info("Creating database...")
+    await engine.create_db()
+
     dp.include_router(bot_router)
     await start_bot()
     webhook_url = settings.get_webhook_url()
@@ -27,8 +31,11 @@ async def lifespan(app: FastAPI):
     await stop_bot()
     logging.info("Webhook deleted")
 
+    # logging.info("Dropping database...")
+    # await engine.drop_db()
 
 app = FastAPI(lifespan=lifespan)
+
 
 app.mount('/static', StaticFiles(directory='app/static'), 'static')
 
@@ -47,6 +54,7 @@ app.include_router(site_router)
 # Создаём объект базы данных и подключаемся
 @app.on_event("startup")
 async def startup():
+    logging.info("Starting up the application...")
     await engine.create_db()
 
 

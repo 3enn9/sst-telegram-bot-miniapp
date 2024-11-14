@@ -1,16 +1,18 @@
-import os
-import shutil
-from io import BytesIO
+import logging
 from typing import Optional
 
 from aiogram.types import InputFile, BufferedInputFile
-from fastapi import APIRouter, Form, Query, HTTPException, UploadFile, File
+from fastapi import APIRouter, Form, Query, HTTPException, UploadFile, File, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
-from starlette.responses import RedirectResponse
+from sqlalchemy.engine import result
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.bot.create_bot import bot
+from app.database.engine import connection, get_session
+from app.database.orm_query import get_all_firms, get_addresses_by_firm_name
 
 router = APIRouter(prefix='', tags=['САЙТ'])
 templates = Jinja2Templates(directory='app/templates')
@@ -25,22 +27,27 @@ firms_db = [
     "ООО СарстройТех"
 ]
 
-# Путь для сохранения файлов
-UPLOAD_DIRECTORY = "uploads/"
-
-# Убедитесь, что директория существует
-if not os.path.exists(UPLOAD_DIRECTORY):
-    os.makedirs(UPLOAD_DIRECTORY)
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,  # Уровень логирования
+    format='%(asctime)s - %(levelname)s - %(message)s'  # Формат логов
+)
 
 
 @router.get("/search_firm")
-async def search_firm(query: str = Query(...)):
-    # Проверка, что query не пустой
-    # Фильтруем список firms_db по введённой части имени
-    filtered_firms = [firm for firm in firms_db if query.lower() in firm.lower()]
+async def search_firm(query: str = Query(...), session: AsyncSession = Depends(get_session)):
+    firms = await get_all_firms(session)
+    filtered_firms = [firm.name for firm in firms]
 
     # Возвращаем JSON-ответ с отфильтрованным списком
     return JSONResponse(content=filtered_firms)
+
+
+@router.get("/search_address")
+async def search_address(query: str = Query(...), firm: str = Query(...), session: AsyncSession = Depends(get_session)):
+    # Логика поиска по адресу и названию фирмы
+    addresses = await get_addresses_by_firm_name(session, firm)
+    return JSONResponse(content=addresses)
 
 
 # Пример обработки запроса через FastAPI для рендеринга HTML
@@ -70,11 +77,15 @@ async def submit_form(
 
     # Получение данных из формы
     content = (f"Фирма: {search}\n"
-                 f"Адрес: {address}\n"
-                 f"Действие: {action}\nНомер взятого б.: {taken_basket_number}\n"
-                 f"Номер поставленного б.: {placed_basket_number}\n"
-                 f"Свалка: {choice}\nВес: {weight_value}\n"
-                 f"user_id: {user_id}")
+               f"Адрес: {address}\n"
+               f"Действие: {action}\n"
+               f"Взял: {taken_basket_number}\n"
+               f"Поставил: {placed_basket_number}\n"
+               f"Свалка: {choice}\nВес: {weight_value}\n"
+               f"user_id: {user_id}")
+
+    # Выполните логику отправки данных и фото
+    success_message = None  # Сообщение об успехе
 
     if photo:
         try:
@@ -85,11 +96,14 @@ async def submit_form(
             input_photo = BufferedInputFile(photo_bytes, filename=photo.filename)
 
             # Отправляем фото в Telegram
-            await bot.send_photo(chat_id="877804669", photo=input_photo, caption=content)
-            saved_photo = f'Фото отправлено: {photo.filename}'
+            await bot.send_photo(chat_id=settings.CHAT_ID, photo=input_photo, caption=content)
+            success_message = "Фото и данные успешно отправлены!"
+            logging.info(success_message)  # Логируем сообщение об успехе
         except Exception as e:
-            saved_photo = f'Ошибка при отправке фото: {str(e)}'
+            logging.error(f'Ошибка при отправке фото: {str(e)}')  # Логируем сообщение об ошибке
     else:
-        saved_photo = 'Не загружено'
+        logging.warning('Не загружено')
 
-    return RedirectResponse(url=request.url_for('submit_form', user_id=user_id), status_code=303)
+    # Перенаправление с добавлением сообщения об успехе
+    return templates.TemplateResponse("index.html",
+                                      {"request": request, "user_id": user_id, "message": success_message})

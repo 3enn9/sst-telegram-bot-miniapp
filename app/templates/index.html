@@ -6,142 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <title>Живой поиск и форма</title>
-    <style>
-        html, body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* Отключает прокрутку */
-            height: 100vh; /* Фиксирует высоту на высоту экрана */
-            width: 100vw; /* Фиксирует ширину на ширину экрана */
-            background-color: #f4f7f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column; /* Располагаем элементы по вертикали */
-            align-items: flex-start; /* Выравниваем по левому краю */
-            padding: 20px;
-            height: 100%;
-            background-color: #ffffff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            box-sizing: border-box; /* Учитывает padding в ширину */
-            overflow: hidden;
-            width: 100%;
-            max-width: 500px; /* Ограничиваем ширину контейнера */
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            font-size: 1.2em;
-            margin-bottom: 20px;
-        }
-
-        label {
-            font-size: 14px;
-            margin-right: 10px;
-            color: #333; /* Цвет текста для лейбла */
-            white-space: nowrap;
-        }
-
-        input, select, button {
-            width: 70%;
-            max-width: 400px;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
-
-                /* Визуальный стиль инпутов */
-        input[type="text"], select {
-            background-color: #f9f9f9;
-            color: #333;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
-
-        input[type="text"]:focus, select:focus {
-            border-color: #4CAF50;
-            background-color: #fff;
-            outline: none;
-        }
-
-        button {
-            width: 100%;
-            background-color: #4CAF50; /* Зеленый фон для кнопки */
-            color: white; /* Белый текст на кнопке */
-            border: none;
-            margin-top: 10px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #45a049; /* Темно-зеленый при наведении */
-        }
-
-        .field-wrapper {
-            display: flex;
-            align-items: center; /* Выравниваем элементы по вертикали */
-            margin-bottom: 15px;
-            width: 100%;
-        }
-
-        button:active {
-            background-color: #388e3c; /* Еще более темный зеленый при клике */
-        }
-
-        .suggestions {
-            position: absolute;
-            width: 100%;
-            max-height: 150px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #fff;
-            z-index: 100;
-            display: none;
-        }
-
-        .suggestion-item {
-            padding: 10px;
-            cursor: pointer;
-        }
-
-        .suggestion-item:hover {
-            background-color: #f1f1f1;
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 15px;
-                min-height: 450px;
-            }
-
-            h1 {
-                font-size: 1em;
-            }
-
-            input, select, button {
-                font-size: 13px;
-                padding: 8px;
-            }
-        }
-
-    </style>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Импортируем CSS файл -->
 </head>
 <body>
 
 <div class="container">
+    {% if message %}
+        <div id="notification" class="notification">Фото и данные успешно отправлены!</div>
+    {% endif %}
+    <!-- Остальная часть формы -->
     <h1>Добавление операции</h1>
     <form id="export-form" action="/{{ user_id }}/submit" method="post" enctype="multipart/form-data">
         <!-- Поле для автозаполнения -->
@@ -152,6 +25,7 @@
         <!-- Адрес -->
         <label for="address">Адрес:</label>
         <input type="text" id="address" name="address" required placeholder="Введите адрес">
+        <div id="address-suggestions" class="suggestions-container"></div>
 
         <!-- Выбор действия -->
         <label for="action">Что сделал:</label>
@@ -194,136 +68,7 @@
     </form>
 </div>
 
-<script>
-    document.addEventListener("visibilitychange", function() {
-        if (document.visibilityState === "visible") {
-            // Программно перезагружаем форму или нужные поля
-            document.getElementById('export-form').reset();
-        }
-    });
-
-    const searchInput = document.getElementById("search");
-    const suggestionsContainer = document.getElementById("suggestions");
-
-    searchInput.addEventListener("input", async function () {
-        const query = this.value;
-
-        if (query.length > 2) {
-            try {
-                const response = await fetch(`/search_firm?query=${query}`);
-
-                // Проверка на успешность запроса
-                if (!response.ok) {
-                    console.error("Ошибка запроса:", response.status);
-                    return;
-                }
-
-                const suggestions = await response.json();
-
-                // Проверяем, что suggestions — массив, перед тем как выполнять forEach
-                if (!Array.isArray(suggestions)) {
-                    console.error("Неверный формат данных, ожидался массив:", suggestions);
-                    return;
-                }
-
-                suggestionsContainer.innerHTML = "";
-
-                suggestions.forEach(suggestion => {
-                    const item = document.createElement("div");
-                    item.classList.add("suggestion-item");
-                    item.textContent = suggestion;
-                    item.onclick = function () {
-                        searchInput.value = suggestion;
-                        suggestionsContainer.innerHTML = "";
-                        suggestionsContainer.style.display = "none";
-                    };
-                    suggestionsContainer.appendChild(item);
-                });
-
-                suggestionsContainer.style.display = suggestions.length ? "block" : "none";
-            } catch (error) {
-                console.error("Ошибка при выполнении запроса:", error);
-            }
-        } else {
-            suggestionsContainer.innerHTML = "";
-            suggestionsContainer.style.display = "none";
-        }
-    });
-
-        // Обработчик для поля выбора
-    const choiceField = document.getElementById("choice");
-    const weightField = document.getElementById("weight-field");
-    const weightInput = document.getElementById("weight");
-
-    // Функция для отображения или скрытия поля веса в зависимости от выбора
-    function toggleWeightField() {
-        if (choiceField.value === "вектор") {
-            weightField.style.display = "block";  // Показываем поле для веса
-            weightInput.required = true;         // Делаем поле обязательным
-        } else {
-            weightField.style.display = "none";   // Скрываем поле для веса
-            weightInput.required = false;        // Убираем обязательность
-        }
-    }
-
-    // Инициализация состояния при загрузке
-    toggleWeightField();
-
-    // Добавляем обработчик события
-    choiceField.addEventListener("change", toggleWeightField);
-
-    // Обработчик для изменения значения в селекте "action"
-    document.getElementById('action').addEventListener('change', function() {
-        var takenBasketField = document.getElementById('taken_basket_number');
-        var placedBasketField = document.getElementById('placed_basket_number');
-        var takenBasketLabel = document.querySelector('label[for="taken_basket_number"]');
-        var placedBasketLabel = document.querySelector('label[for="placed_basket_number"]');
-        var choiceField = document.getElementById('choice');
-        var choiceLabel = document.querySelector('label[for="choice"]');
-
-        // Если выбран вариант "Выставил", скрываем поле "Номер взятого бака" и его лейбл
-        if (this.value === 'выставил') {
-            takenBasketField.style.display = 'none';  // Скрываем поле "Номер взятого бака"
-            takenBasketLabel.style.display = 'none';  // Скрываем лейбл "Номер взятого бака"
-            placedBasketField.style.display = 'block';  // Показываем поле "Номер выстав. бака"
-            placedBasketLabel.style.display = 'block';  // Показываем лейбл "Номер поставленного бака"
-            choiceField.style.display = 'none';
-            choiceLabel.style.display = 'none';
-
-            // Удаляем значение из поля choice перед отправкой
-            choiceField.value = '';  // Очищаем значение
-
-        }
-        // Если выбран вариант "Забрал", скрываем поле "Номер поставленного бака" и его лейбл
-        else if (this.value === 'забрал') {
-            takenBasketField.style.display = 'block';  // Показываем поле "Номер взятого бака"
-            takenBasketLabel.style.display = 'block';  // Показываем лейбл "Номер взятого бака"
-            placedBasketField.style.display = 'none';  // Скрываем поле "Номер поставленного бака"
-            placedBasketLabel.style.display = 'none';  // Скрываем лейбл "Номер поставленного бака"
-        } else {
-            // В случае других значений (если нужно вернуть по умолчанию)
-            takenBasketField.style.display = 'block';  // Показываем оба поля
-            takenBasketLabel.style.display = 'block';  // Показываем лейбл "Номер взятого бака"
-            placedBasketField.style.display = 'block';  // Показываем оба поля
-            placedBasketLabel.style.display = 'block';  // Показываем лейбл "Номер поставленного бака"
-        }
-    });
-
-    // Скрывать список предложений при потере фокуса
-    searchInput.addEventListener("blur", function () {
-        setTimeout(() => {
-            suggestionsContainer.style.display = "none";
-        }, 200); // Небольшая задержка, чтобы успеть кликнуть по предложению
-    });
-
-    // Закрытие списка предложений, если кликнули вне поля ввода и списка
-    document.addEventListener("click", function(event) {
-        if (!searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
-            suggestionsContainer.style.display = "none";
-        }
-    });
-
-</script>
+<script src="/static/scripts.js"></script>
 
 </body>
 </html>

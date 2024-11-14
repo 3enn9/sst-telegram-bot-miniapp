@@ -28,7 +28,6 @@ async def cmd_start(message: Message, session: AsyncSession, **kwargs):
 
         if existing_user:
             print('сущетсвует')
-            # raise ValueError("Пользователь с таким telegram_id уже существует.")
         else:
             await add_user(session=session, telegram_id=message.from_user.id,
                            username=message.from_user.username,
