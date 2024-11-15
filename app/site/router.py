@@ -3,7 +3,7 @@ from typing import Optional
 
 from aiogram.types import InputFile, BufferedInputFile
 from fastapi import APIRouter, Form, Query, HTTPException, UploadFile, File, Depends
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
 from sqlalchemy.engine import result
@@ -37,8 +37,7 @@ logging.basicConfig(
 @router.get("/search_firm")
 async def search_firm(query: str = Query(...), session: AsyncSession = Depends(get_session)):
     firms = await get_all_firms(session)
-    filtered_firms = [firm.name for firm in firms]
-
+    filtered_firms = [firm.name for firm in firms if query.lower() in firm.name.lower()]
     # Возвращаем JSON-ответ с отфильтрованным списком
     return JSONResponse(content=filtered_firms)
 
@@ -52,8 +51,8 @@ async def search_address(query: str = Query(...), firm: str = Query(...), sessio
 
 # Пример обработки запроса через FastAPI для рендеринга HTML
 @router.get("/{user_id}", response_class=HTMLResponse)
-async def read_root(request: Request, user_id: int):
-    return templates.TemplateResponse("index.html", {"request": request, "user_id": user_id})
+async def read_root(request: Request, user_id: int, message: str = ''):
+    return templates.TemplateResponse("index.html", {"request": request, "user_id": user_id, "message": message})
 
 
 # Обработка отправленных данных
@@ -81,7 +80,8 @@ async def submit_form(
                f"Действие: {action}\n"
                f"Взял: {taken_basket_number}\n"
                f"Поставил: {placed_basket_number}\n"
-               f"Свалка: {choice}\nВес: {weight_value}\n"
+               f"Свалка: {choice}\n"
+               f"Вес: {weight_value}\n"
                f"user_id: {user_id}")
 
     # Выполните логику отправки данных и фото
@@ -104,6 +104,6 @@ async def submit_form(
     else:
         logging.warning('Не загружено')
 
-    # Перенаправление с добавлением сообщения об успехе
-    return templates.TemplateResponse("index.html",
-                                      {"request": request, "user_id": user_id, "message": success_message})
+    # Сохраняем сообщение в сессии или передавайте параметр в URL (например, через Query String)
+    redirect_url = f"/{user_id}?message={success_message}"
+    return RedirectResponse(redirect_url, status_code=303)

@@ -2,31 +2,31 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
     <title>Живой поиск и форма</title>
     <link rel="stylesheet" href="/static/styles.css"> <!-- Импортируем CSS файл -->
 </head>
 <body>
-
-<div class="container">
     {% if message %}
         <div id="notification" class="notification">Фото и данные успешно отправлены!</div>
     {% endif %}
-    <!-- Остальная часть формы -->
-    <h1>Добавление операции</h1>
+
+    <!-- Форма -->
     <form id="export-form" action="/{{ user_id }}/submit" method="post" enctype="multipart/form-data">
-        <!-- Поле для автозаполнения -->
-        <label for="search">Фирма:</label>
-        <input type="text" id="search" name="search" autocomplete="off" required placeholder="Начните вводить фирму">
-        <div id="suggestions" class="suggestions"></div>
 
-        <!-- Адрес -->
-        <label for="address">Адрес:</label>
-        <input type="text" id="address" name="address" required placeholder="Введите адрес">
-        <div id="address-suggestions" class="suggestions-container"></div>
-
+        <div class="search-container">
+            <input type="text" id="search-input" class="search-input" placeholder="Поиск фирмы..." name="search">
+            <div id="suggestions-container" class="suggestions-container">
+                <!-- Сюда будут добавляться предложения -->
+            </div>
+        </div>
+        <div class="address-container">
+            <!-- Поле для ввода адреса -->
+            <input id="address-input" class="address-input" type="text" placeholder="Введите адрес" name="address">
+            <div class="address-suggestions" id="address-suggestions">
+                <!-- Сюда будут добавляться предложения -->
+            </div>
+        </div>       
         <!-- Выбор действия -->
         <label for="action">Что сделал:</label>
         <select id="action" name="action" required>
@@ -42,7 +42,6 @@
 
         <label for="placed_basket_number">Номер поставленного бака:</label>
         <input type="text" id="placed_basket_number" name="placed_basket_number" required placeholder="Введите номер поставленного бака">
-        <p></p>
 
         <!-- Дубки/Вектор/База/РСМ -->
         <label for="choice">Выберите:</label>
@@ -66,9 +65,8 @@
 
         <button type="submit">Отправить</button>
     </form>
-</div>
 
-<script src="/static/scripts.js"></script>
+    <script src="/static/scripts.js"></script>
 
 </body>
 </html>

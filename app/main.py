@@ -49,16 +49,3 @@ async def webhook(request: Request) -> None:
 
 
 app.include_router(site_router)
-
-
-# Создаём объект базы данных и подключаемся
-@app.on_event("startup")
-async def startup():
-    logging.info("Starting up the application...")
-    await engine.create_db()
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    # await engine.drop_db()
-    pass

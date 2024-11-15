@@ -5,10 +5,14 @@ document.addEventListener("visibilitychange", function() {
         }
     });
 
-const searchInput = document.getElementById("search");  // Для поля с фирмой
-const addressInput = document.getElementById("address");  // Для поля с адресом
-const suggestionsContainer = document.getElementById("suggestions");
+const searchInput = document.getElementById("search-input");  // Для поля с фирмой
+const addressInput = document.getElementById("address-input");  // Для поля с адресом
+const suggestionsContainer = document.getElementById("suggestions-container");
+const addresssuggestionsContainer = document.getElementById("address-suggestions");
 
+
+console.log(searchInput)
+console.log(addressInput)
 // Обработчик для поля "search" (фирма)
 searchInput.addEventListener("input", async function () {
     const query = this.value;
@@ -33,7 +37,6 @@ searchInput.addEventListener("input", async function () {
             }
 
             suggestionsContainer.innerHTML = "";
-
             suggestions.forEach(suggestion => {
                 const item = document.createElement("div");
                 item.classList.add("suggestion-item");
@@ -61,7 +64,7 @@ addressInput.addEventListener("input", async function () {
     const query = this.value;  // Это то, что вводит пользователь в поле для адреса
     const firmQuery = searchInput.value;  // Это то, что было введено в поле для фирмы
 
-    if (query.length >= 0 && firmQuery.length > 0) {
+    if (query.length >= 1 && firmQuery.length > 0) {
         try {
             // Запрос для поиска адресов по firmQuery (значение из поля "search") и query (значение из поля "address")
             const response = await fetch(`/search_address?query=${query}&firm=${firmQuery}`);
@@ -73,14 +76,14 @@ addressInput.addEventListener("input", async function () {
             }
 
             const suggestions = await response.json();
-
+            console.log(suggestions)
             // Проверяем, что suggestions — массив, перед тем как выполнять forEach
             if (!Array.isArray(suggestions)) {
                 console.error("Неверный формат данных, ожидался массив:", suggestions);
                 return;
             }
 
-            suggestionsContainer.innerHTML = "";
+            addresssuggestionsContainer.innerHTML = "";
 
             suggestions.forEach(suggestion => {
                 const item = document.createElement("div");
@@ -88,19 +91,19 @@ addressInput.addEventListener("input", async function () {
                 item.textContent = suggestion;
                 item.onclick = function () {
                     addressInput.value = suggestion;
-                    suggestionsContainer.innerHTML = "";
-                    suggestionsContainer.style.display = "none";
+                    addresssuggestionsContainer.innerHTML = "";
+                    addresssuggestionsContainer.style.display = "none";
                 };
-                suggestionsContainer.appendChild(item);
+                addresssuggestionsContainer.appendChild(item);
             });
 
-            suggestionsContainer.style.display = suggestions.length ? "block" : "none";
+            addresssuggestionsContainer.style.display = suggestions.length ? "block" : "none";
         } catch (error) {
             console.error("Ошибка при выполнении запроса:", error);
         }
     } else {
-        suggestionsContainer.innerHTML = "";
-        suggestionsContainer.style.display = "none";
+        addresssuggestionsContainer.innerHTML = "";
+        addresssuggestionsContainer.style.display = "none";
     }
 });
 
@@ -144,6 +147,8 @@ document.getElementById('action').addEventListener('change', function() {
         placedBasketLabel.style.display = 'block';  // Показываем лейбл "Номер поставленного бака"
         choiceField.style.display = 'none';
         choiceLabel.style.display = 'none';
+        weightField.style.display = "none";   // Скрываем поле для веса
+        weightInput.required = false;        // Убираем обязательность
 
         // Удаляем значение из поля choice перед отправкой
         choiceField.value = '';  // Очищаем значение
@@ -155,12 +160,18 @@ document.getElementById('action').addEventListener('change', function() {
         takenBasketLabel.style.display = 'block';  // Показываем лейбл "Номер взятого бака"
         placedBasketField.style.display = 'none';  // Скрываем поле "Номер поставленного бака"
         placedBasketLabel.style.display = 'none';  // Скрываем лейбл "Номер поставленного бака"
+        choiceField.style.display = 'block';
+        choiceLabel.style.display = 'block';
+
     } else {
         // В случае других значений (если нужно вернуть по умолчанию)
         takenBasketField.style.display = 'block';  // Показываем оба поля
         takenBasketLabel.style.display = 'block';  // Показываем лейбл "Номер взятого бака"
         placedBasketField.style.display = 'block';  // Показываем оба поля
         placedBasketLabel.style.display = 'block';  // Показываем лейбл "Номер поставленного бака"
+        choiceField.style.display = 'block';
+        choiceLabel.style.display = 'block';
+
     }
 });
 
@@ -187,3 +198,21 @@ function hideNotification() {
 
 // Автоматическое скрытие уведомления через 3 секунды
 setTimeout(hideNotification, 3000);
+
+// // Функция для восстановления фокуса на первом input
+// function restoreFocus() {
+//     const inputFields = document.querySelectorAll('input');
+    
+//     // Восстановить фокус на первом поле ввода
+//     if (inputFields.length > 0) {
+//         inputFields[0].focus();
+//     }
+// }
+
+// // Обработчик события visibilitychange
+// document.addEventListener("visibilitychange", function() {
+//     // Проверяем, если страница снова видима
+//     if (document.visibilityState === "visible") {
+//         restoreFocus();
+//     }
+// });
