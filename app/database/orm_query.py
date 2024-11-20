@@ -127,6 +127,9 @@ async def add_firm(session: AsyncSession, firm_name: str):
     try:
         # Добавляем объект фирмы в сессию
         session.add(new_firm)
+        # Подтверждаем изменения
+        await session.commit()
+
         # Получаем id добавленной фирмы
         return new_firm.id
     except IntegrityError:
