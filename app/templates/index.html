@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Живой поиск и форма</title>
     <link rel="stylesheet" href="/static/styles.css"> <!-- Импортируем CSS файл -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     {% if message %}
@@ -12,23 +13,23 @@
     {% endif %}
 
     <!-- Форма -->
-    <form id="export-form" action="/{{ user_id }}/submit" method="post" enctype="multipart/form-data">
+    <form id="export-form" action="/{{ user_id }}/submit?username={{ username }}" method="post" enctype="multipart/form-data">
 
         <div class="search-container">
-            <input type="text" id="search-input" class="search-input" placeholder="Поиск фирмы..." name="search">
+            <input type="text" id="search-input" class="search-input" placeholder="Поиск фирмы..." name="search" required>
             <div id="suggestions-container" class="suggestions-container">
                 <!-- Сюда будут добавляться предложения -->
             </div>
         </div>
         <div class="address-container">
             <!-- Поле для ввода адреса -->
-            <input id="address-input" class="address-input" type="text" placeholder="Введите адрес" name="address">
+            <input id="address-input" class="address-input" type="text" placeholder="Введите адрес" name="address" required>
             <div class="address-suggestions" id="address-suggestions">
                 <!-- Сюда будут добавляться предложения -->
             </div>
         </div>       
         <!-- Выбор действия -->
-        <label for="action">Что сделал:</label>
+        <label for="action">Что сделал {{ username }}:</label>
         <select id="action" name="action" required>
             <option value="поменял">Поменял</option>
             <option value="забрал">Забрал</option>
@@ -38,10 +39,10 @@
 
         <!-- Номера баков -->
         <label for="taken_basket_number">Номер взятого бака:</label>
-        <input type="text" id="taken_basket_number" name="taken_basket_number" required placeholder="Введите номер взятого бака">
+        <input type="text" id="taken_basket_number" name="taken_basket_number" placeholder="Введите номер взятого бака" required>
 
         <label for="placed_basket_number">Номер поставленного бака:</label>
-        <input type="text" id="placed_basket_number" name="placed_basket_number" required placeholder="Введите номер поставленного бака">
+        <input type="text" id="placed_basket_number" name="placed_basket_number" placeholder="Введите номер поставленного бака" required>
 
         <!-- Дубки/Вектор/База/РСМ -->
         <label for="choice">Выберите:</label>
@@ -65,7 +66,7 @@
 
         <button type="submit">Отправить</button>
     </form>
-
+    
     <script src="/static/scripts.js"></script>
 
 </body>

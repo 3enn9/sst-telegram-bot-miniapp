@@ -36,8 +36,8 @@ async def cmd_start(message: Message, session: AsyncSession, **kwargs):
 
         def main_keyboard() -> InlineKeyboardMarkup:
             kb = InlineKeyboardBuilder()
-            kb.button(text="📝 Добавить операцию", web_app=WebAppInfo(url=f"{settings.BASE_SITE}/{message.from_user.id}"))
-            # kb.button(text="🏆 Лидеры 2048", web_app=WebAppInfo(url=f"{settings.BASE_SITE}/records"))
+            kb.button(text="📝 Добавить операцию", web_app=WebAppInfo(url=f"{settings.BASE_SITE}/{message.from_user.id}?username={message.from_user.username}"))
+            kb.button(text="🚨 Добавить поломку", web_app=WebAppInfo(url=f"{settings.BASE_SITE}/breakdown/{message.from_user.id}?username={message.from_user.username}"))
             kb.button(text="📈 Операции за сегодня", callback_data="show_my_record")
             kb.adjust(1)
             return kb.as_markup()

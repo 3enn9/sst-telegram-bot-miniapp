@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Живой поиск и форма</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Импортируем CSS файл -->
+</head>
+<body>
+    {% if message %}
+        <div id="notification" class="notification">Фото и данные успешно отправлены!</div>
+    {% endif %}
+
+    <!-- Форма -->
+    <form id="export-form" action="/breakdown/submit/{{ user_id }}?username={{ username }}/" method="post" enctype="multipart/form-data">
+        <h3>Hello {{ username }}</h1>
+
+            <label for="car-number-input"></label>
+            <input type="text" id="car-number-input" class="car-number-input" placeholder="Введите номер машины..." name="car-number">
+
+            <label for="breakdown-input">Поломка:</label>
+            <input id="breakdown-input" class="breakdown-input" type="text" placeholder="" name="breakdown">
+            
+            <label for="comment-breakdown">Комментарий:</label>
+            <input id="comment-breakdown" class="comment-breakdown" type="text" placeholder="Комментарий к поломке..." name="comment">
+
+
+        <!-- Поле для фото -->
+        <label for="photo">Фото:</label>
+        <input type="file" id="photo" name="photo" accept="image/*" required>
+
+        <button type="submit">Отправить</button>
+    </form>
+
+    <script src="#"></script>
+
+</body>
+</html>

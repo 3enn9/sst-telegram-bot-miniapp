@@ -1,18 +1,24 @@
 import os
 from typing import List
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+load_dotenv(override=True)
 
-class Settings(BaseSettings):
-    BOT_TOKEN: str
-    ADMIN_IDS: List[int]
-    DB_URL: str = "postgresql+asyncpg://postgres:asd228asd@localhost:5432/bobcat64_miniapp"
-    BASE_SITE: str
-    CHAT_ID: str
+class Settings:
+    def __init__(self):
+        self.BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
+        self.ADMIN_IDS: List[int] = self._parse_admin_ids(os.getenv("ADMIN_IDS", "[]"))
+        self.DB_URL: str = os.getenv("DB_URL", "postgresql+asyncpg://postgres:asd228asd@localhost:5432/bobcat64_miniapp")
+        self.BASE_SITE: str = os.getenv("BASE_SITE", "")
+        self.CHAT_ID: str = os.getenv("CHAT_ID", "")
 
-    model_config = SettingsConfigDict(
-        env_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
-    )
+    def _parse_admin_ids(self, admin_ids: str) -> List[int]:
+        """Парсит строку с ID администраторов в список целых чисел."""
+        try:
+            return eval(admin_ids)  # Используем eval, чтобы распарсить строку как список
+        except (SyntaxError, ValueError):
+            return []
 
     def get_webhook_url(self) -> str:
         """Возвращает URL вебхука с кодированием специальных символов."""

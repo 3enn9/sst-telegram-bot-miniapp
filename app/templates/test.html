@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Состояние Mini App</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        #status {
+            font-size: 18px;
+        }
+        input:disabled {
+            background-color: #ccc; /* Цвет фона для неактивных полей */
+        }
+    </style>
+</head>
+<body>
+    <h1>Состояние Mini App</h1>
+    <p id="status">Статус: <span id="app-status">Неизвестно</span></p>
+
+    <form id="myForm">
+        <input type="text" id="inputField1" placeholder="Поле 1" required>
+        <input type="text" id="inputField2" placeholder="Поле 2" required>
+    </form>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        Telegram.WebApp.enableVerticalSwipes();
+
+
+        // Функция для обновления статуса на странице
+        function updateStatus(status) {
+            const statusElement = document.getElementById('app-status');
+            statusElement.textContent = status;
+        }
+
+        // Функция для обновления доступности полей формы
+        function toggleInputFields(isActive) {
+            const inputFields = document.querySelectorAll('input');
+            inputFields.forEach(input => {
+                if (isActive) {
+                    input.disabled = false; // Включаем доступность
+                } else {
+                    input.disabled = true; // Отключаем доступность
+                }
+            });
+        }
+
+        // Проверка активности Mini App
+        function checkAppStatus() {
+            if (Telegram.WebApp.isActive) {
+                document.getElementById('search-input').blur(); // Снимаем фокус с поля
+                updateStatus('Мини-приложение открыто');
+                toggleInputFields(true); // Делаем поля доступными
+            } else {
+                updateStatus('Мини-приложение закрыто или минимизировано');
+                toggleInputFields(false); // Отключаем поля
+            }
+        }
+
+        // Отслеживаем изменения активности с использованием setInterval
+        setInterval(checkAppStatus, 1000);  // Проверка каждый 1 секунду
+
+        // Вызов проверки активности сразу при запуске
+        checkAppStatus();
+    </script>
+</body>
+</html>

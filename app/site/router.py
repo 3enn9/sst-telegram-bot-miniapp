@@ -5,7 +5,7 @@ from aiogram.types import InputFile, BufferedInputFile
 from fastapi import APIRouter, Form, Query, HTTPException, UploadFile, File, Depends
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from fastapi import Request
+from fastapi import Request, Response
 from sqlalchemy.engine import result
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,15 +17,6 @@ from app.database.orm_query import get_all_firms, get_addresses_by_firm_name
 router = APIRouter(prefix='', tags=['САЙТ'])
 templates = Jinja2Templates(directory='app/templates')
 
-# Пример списка фирм
-firms_db = [
-    "ООО Рога и Копыта",
-    "ЗАО Фирма-1",
-    "ИП Бобров",
-    "Компания АБС",
-    "Магазин Плюс",
-    "ООО СарстройТех"
-]
 
 # Настройка логирования
 logging.basicConfig(
@@ -51,8 +42,14 @@ async def search_address(query: str = Query(...), firm: str = Query(...), sessio
 
 # Пример обработки запроса через FastAPI для рендеринга HTML
 @router.get("/{user_id}", response_class=HTMLResponse)
-async def read_root(request: Request, user_id: int, message: str = ''):
-    return templates.TemplateResponse("index.html", {"request": request, "user_id": user_id, "message": message})
+async def read_root(request: Request, user_id: int, message: str = '',  username: str = Query(None)):
+    return templates.TemplateResponse("index.html", {"request": request, "user_id": user_id, "message": message,  "username": username})
+
+
+@router.get("/breakdown/{user_id}")
+async def add_breakdown(request: Request, user_id: int, username: str = Query(None), response: Response = None):
+    response.headers["Cache-Control"] = "no-store"
+    return templates.TemplateResponse("breakdown.html", {"request": request, "user_id": user_id, "username": username})
 
 
 # Обработка отправленных данных
@@ -66,7 +63,8 @@ async def submit_form(
         placed_basket_number: str = Form(...),
         choice: str = Form(...),
         weight: Optional[str] = Form(None),
-        photo: Optional[UploadFile] = File(...)  # Ожидаем файл
+        username: str = Query(None),
+        photo: Optional[UploadFile] = File(...),  # Ожидаем файл
 ):
     # Обработка значения поля weight
     weight_value = float(weight) if weight and weight.strip() else 'Не указан'
@@ -75,14 +73,14 @@ async def submit_form(
     user_id = request.path_params['user_id']
 
     # Получение данных из формы
-    content = (f"Фирма: {search}\n"
-               f"Адрес: {address}\n"
-               f"Действие: {action}\n"
-               f"Взял: {taken_basket_number}\n"
-               f"Поставил: {placed_basket_number}\n"
-               f"Свалка: {choice}\n"
-               f"Вес: {weight_value}\n"
-               f"user_id: {user_id}")
+    content = (f"Фирма: <b>{search}</b>\n"
+               f"Адрес: <b>{address}</b>\n"
+               f"Действие: <b>{action}</b>\n"
+               f"Взял: <b>{taken_basket_number}</b>\n"
+               f"Поставил: <b>{placed_basket_number}</b>\n"
+               f"Свалка: <b>{choice}</b>\n"
+               f"Вес: <b>{weight_value}</b>\n"
+               f"Водитель: <b>@{username}</b>")
 
     # Выполните логику отправки данных и фото
     success_message = None  # Сообщение об успехе
@@ -96,7 +94,7 @@ async def submit_form(
             input_photo = BufferedInputFile(photo_bytes, filename=photo.filename)
 
             # Отправляем фото в Telegram
-            await bot.send_photo(chat_id=settings.CHAT_ID, photo=input_photo, caption=content)
+            await bot.send_photo(chat_id=settings.CHAT_ID, photo=input_photo, caption=content, parse_mode="HTML")
             success_message = "Фото и данные успешно отправлены!"
             logging.info(success_message)  # Логируем сообщение об успехе
         except Exception as e:
@@ -105,5 +103,5 @@ async def submit_form(
         logging.warning('Не загружено')
 
     # Сохраняем сообщение в сессии или передавайте параметр в URL (например, через Query String)
-    redirect_url = f"/{user_id}?message={success_message}"
+    redirect_url = f"/{user_id}?message={success_message}&username={username}"
     return RedirectResponse(redirect_url, status_code=303)

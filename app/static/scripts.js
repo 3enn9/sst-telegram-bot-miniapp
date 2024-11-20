@@ -1,18 +1,27 @@
+// Убедитесь, что Telegram Web App API загружен
+window.Telegram.WebApp.ready();
+
+// Функция для проверки состояния активности
+function checkIsActive() {
+    const isActive = Telegram.WebApp.isActive; // Получаем значение isActive
+    return isActive;
+}
+
+// Пример использования в обработчике события visibilitychange
 document.addEventListener("visibilitychange", function() {
-        if (document.visibilityState === "visible") {
-            // Программно перезагружаем форму или нужные поля
-            document.getElementById('export-form').reset();
-        }
-    });
+    if (document.visibilityState === "visible" && checkIsActive()) {
+        // Программно перезагружаем форму или нужные поля
+        document.getElementById('export-form').reset();
+    }
+});
 
 const searchInput = document.getElementById("search-input");  // Для поля с фирмой
 const addressInput = document.getElementById("address-input");  // Для поля с адресом
 const suggestionsContainer = document.getElementById("suggestions-container");
 const addresssuggestionsContainer = document.getElementById("address-suggestions");
 
+console.log(document.visibilityState);
 
-console.log(searchInput)
-console.log(addressInput)
 // Обработчик для поля "search" (фирма)
 searchInput.addEventListener("input", async function () {
     const query = this.value;
