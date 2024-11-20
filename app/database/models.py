@@ -59,9 +59,9 @@ class Export(Base):
     firm_id: Mapped[int] = mapped_column(ForeignKey('firms.id'), nullable=False)
     address_id: Mapped[int] = mapped_column(ForeignKey('addresses.id'), nullable=False)
 
-    numb_tank_taken: Mapped[Optional[str]] = mapped_column(String, nullable=False)
-    numb_tank_drop: Mapped[Optional[str]] = mapped_column(String, nullable=False)
-    dump_name: Mapped[Optional[str]] = mapped_column(String, nullable=False)
+    numb_tank_taken: Mapped[Optional[str]] = mapped_column(String)
+    numb_tank_drop: Mapped[Optional[str]] = mapped_column(String)
+    dump_name: Mapped[Optional[str]] = mapped_column(String)
 
     # Связь с моделью User
     user = relationship("User", back_populates="exports")

@@ -26,7 +26,7 @@ console.log(document.visibilityState);
 searchInput.addEventListener("input", async function () {
     const query = this.value;
 
-    if (query.length > 2) {
+    if (query.length >= 2) {
         try {
             // Запрос на поиск фирмы
             const response = await fetch(`/search_firm?query=${query}`);
