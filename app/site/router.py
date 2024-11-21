@@ -60,12 +60,12 @@ async def submit_form(
         search: str = Form(...),
         address: str = Form(...),
         action: str = Form(...),
-        taken_basket_number: str = Form(...),
-        placed_basket_number: str = Form(...),
+        taken_basket_number: str = Form(None),
+        placed_basket_number: str = Form(None),
         choice: str = Form(...),
         weight: Optional[str] = Form(None),
         username: str = Query(None),
-        photo: Optional[UploadFile] = File(...),  # Ожидаем файл,
+        photo: Optional[UploadFile] = File(None), 
         session: AsyncSession = Depends(get_session)
 ):
     # Обработка значения поля weight
@@ -106,8 +106,10 @@ async def submit_form(
                       numb_tank_taken = taken_basket_number or None,
                       numb_tank_drop = placed_basket_number or None,
                       dump_name = choice or None)
+    
+    success_message = "Данные успешно отправлены!"
 
-    if photo:
+    if photo and photo.filename and photo.size > 0:
         try:
             # Читаем содержимое файла в память
             photo_bytes = await photo.read()
@@ -117,12 +119,14 @@ async def submit_form(
 
             # Отправляем фото в Telegram
             await bot.send_photo(chat_id=settings.CHAT_ID, photo=input_photo, caption=content, parse_mode="HTML")
-            success_message = "Фото и данные успешно отправлены!"
+            
             logging.info(success_message)  # Логируем сообщение об успехе
         except Exception as e:
             logging.error(f'Ошибка при отправке фото: {str(e)}')  # Логируем сообщение об ошибке
     else:
-        logging.warning('Не загружено')
+        # Отправляем фото в Telegram
+            await bot.send_message(chat_id=settings.CHAT_ID, text=content, parse_mode="HTML")
+            logging.info(success_message)  # Логируем сообщение об успехе
 
     # Сохраняем сообщение в сессии или передавайте параметр в URL (например, через Query String)
     redirect_url = f"/{user_id}?message={success_message}&username={username}"
