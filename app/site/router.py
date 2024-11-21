@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.bot.create_bot import bot
 from app.database.engine import connection, get_session
-from app.database.orm_query import add_address, add_export, add_firm, get_all_firms, get_addresses_by_firm_name, get_firm_id_by_name
+from app.database.orm_query import add_address, add_export, add_firm, get_address_id_by_name, get_all_firms, get_addresses_by_firm_name, get_firm_id_by_name
 
 router = APIRouter(prefix='', tags=['САЙТ'])
 templates = Jinja2Templates(directory='app/templates')
@@ -88,8 +88,14 @@ async def submit_form(
                f"Вес: <b>{weight_value}</b>\n"
                f"Водитель: <b>@{username}</b>")
 
+ # Инициализация address_id с None или с каким-либо значением по умолчанию
+    address_id = None
+
     if address not in addresses:
         address_id = await add_address(session, address, firm_id)
+    else:
+        # Если адрес уже существует, получить его ID
+        address_id = await get_address_id_by_name(session, address)
 
     # Выполните логику отправки данных и фото
     success_message = None  # Сообщение об успехе

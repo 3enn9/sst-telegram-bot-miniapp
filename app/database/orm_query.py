@@ -109,7 +109,7 @@ from sqlalchemy.future import select
 
 async def get_address_id_by_name(session: AsyncSession, address_name: str):
     # Выполняем запрос для поиска адреса по имени
-    result = await session.execute(select(Address.id).filter(Address.name == address_name))
+    result = await session.execute(select(Address.id).filter(Address.address == address_name))
     
     # Получаем результат (если адрес найден, возвращаем его id)
     address_id = result.scalars().first()
