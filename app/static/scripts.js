@@ -191,6 +191,13 @@ searchInput.addEventListener("blur", function () {
     }, 200); // Небольшая задержка, чтобы успеть кликнуть по предложению
 });
 
+// Скрывать список предложений при потере фокуса
+addressInput.addEventListener("blur", function () {
+    setTimeout(() => {
+        addresssuggestionsContainer.style.display = "none";
+    }, 200); // Небольшая задержка, чтобы успеть кликнуть по предложению
+});
+
 // Закрытие списка предложений, если кликнули вне поля ввода и списка
 document.addEventListener("click", function(event) {
     if (!searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
