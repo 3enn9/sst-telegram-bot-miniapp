@@ -155,6 +155,7 @@ document.getElementById('action').addEventListener('change', function() {
         placedBasketField.style.display = 'block';  // Показываем поле "Номер выстав. бака"
         placedBasketLabel.style.display = 'block';  // Показываем лейбл "Номер поставленного бака"
         choiceField.style.display = 'none';
+        choiceField.removeAttribute('required');
         choiceLabel.style.display = 'none';
         weightField.style.display = "none";   // Скрываем поле для веса
         weightInput.required = false;        // Убираем обязательность

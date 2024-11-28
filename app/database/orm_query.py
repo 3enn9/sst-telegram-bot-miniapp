@@ -4,6 +4,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+import pandas as pd
+from openpyxl import Workbook  # Для сохранения в Excel
 
 from app.database.models import Address, Export, User, Firm
 
@@ -166,3 +168,50 @@ async def add_address(session: AsyncSession, address_name: str, firm_id) -> int:
         await session.rollback()
         print(f"Произошла ошибка: {e}")
         return None
+
+
+async def get_exports(session: AsyncSession):
+    stmt = (
+        select(
+            Export.id,
+            User.first_name,
+            User.last_name,
+            User.username,
+            Firm.name.label("firm_name"),
+            Address.address,
+            Export.numb_tank_taken,
+            Export.numb_tank_drop,
+            Export.dump_name,
+            Export.created_at,
+            Export.updated_at
+        )
+        .join(User, Export.telegram_id == User.telegram_id)
+        .join(Firm, Export.firm_id == Firm.id)
+        .join(Address, Export.address_id == Address.id)
+    )
+    
+    result = await session.execute(stmt)  # Выполнение асинхронного запроса
+    exports = result.fetchall()  # Получение всех результатов
+
+    # Конвертация данных в список словарей для создания DataFrame
+    data = []
+    for export in exports:
+        # Распаковываем кортеж в переменные
+        data.append({
+            "ID": export[0],  # Export.id
+            "User First Name": export[1],  # User.first_name
+            "User Last Name": export[2],  # User.last_name
+            "Username": export[3],  # User.username
+            "Firm": export[4],  # Firm.name
+            "Address": export[5],  # Address.address
+            "Tank Taken": export[6],  # Export.numb_tank_taken
+            "Tank Drop": export[7],  # Export.numb_tank_drop
+            "Dump Name": export[8],  # Export.dump_name
+            "Created At": export[9],  # Export.created_at
+            "Updated At": export[10],  # Export.updated_at
+        })
+
+    # Создаем DataFrame из собранных данных
+    df = pd.DataFrame(data)
+
+    return df

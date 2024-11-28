@@ -1,0 +1,48 @@
+/* Основной контейнер с сеткой */
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Два столбца */
+    gap: 30px; /* Расстояние между колонками */
+    padding: 20px;
+}
+
+/* Секция с таблицей */
+.transactions-section {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Заголовок секции */
+.transactions-section h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Таблицы */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Стиль для заголовков таблиц */
+th {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+}
+
+/* Стиль для ячеек таблиц */
+td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+/* Адаптивность: для экранов меньше 768px - один столбец */
+@media (max-width: 768px) {
+    .grid-container {
+        grid-template-columns: 1fr; /* Один столбец для маленьких экранов */
+    }
+}

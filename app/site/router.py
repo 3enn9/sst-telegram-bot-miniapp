@@ -53,6 +53,11 @@ async def add_breakdown(request: Request, user_id: int, username: str = Query(No
     return templates.TemplateResponse("breakdown.html", {"request": request, "user_id": user_id, "username": username})
 
 
+@router.get("/transactions/{user_id}")
+async def add_breakdown(request: Request, user_id: int, username: str = Query(None), response: Response = None):
+    return templates.TemplateResponse("transactions.html", {"request": request, "user_id": user_id, "username": username})
+
+
 # Обработка отправленных данных
 @router.post("/{user_id}/submit", response_class=HTMLResponse)
 async def submit_form(
@@ -62,12 +67,13 @@ async def submit_form(
         action: str = Form(...),
         taken_basket_number: str = Form(None),
         placed_basket_number: str = Form(None),
-        choice: str = Form(...),
+        choice: str = Form(None),
         weight: Optional[str] = Form(None),
         username: str = Query(None),
         photo: Optional[UploadFile] = File(None), 
         session: AsyncSession = Depends(get_session)
 ):
+    search = search.strip()
     # Обработка значения поля weight
     weight_value = float(weight) if weight and weight.strip() else 'Не указан'
 
@@ -91,8 +97,8 @@ async def submit_form(
  # Инициализация address_id с None или с каким-либо значением по умолчанию
     address_id = None
 
-    if address not in addresses:
-        address_id = await add_address(session, address, firm_id)
+    if address.strip() not in addresses:
+        address_id = await add_address(session, address.strip(), firm_id)
     else:
         # Если адрес уже существует, получить его ID
         address_id = await get_address_id_by_name(session, address)

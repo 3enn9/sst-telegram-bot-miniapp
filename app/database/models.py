@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
-from sqlalchemy import BigInteger, ForeignKey, Integer, TIMESTAMP, func, String
+from sqlalchemy import BigInteger, Float, ForeignKey, Integer, TIMESTAMP, func, String
 from typing import Optional
 
 
@@ -24,8 +24,10 @@ class User(Base):
     username: Mapped[Optional[str]]
     first_name: Mapped[Optional[str]]
     last_name: Mapped[Optional[str]]
+    balance: Mapped[Optional[int]] = mapped_column(Integer, default=0)
 
     exports = relationship("Export", back_populates="user")
+    transactions = relationship("Transaction", back_populates="user")
 
 
 class Firm(Base):
@@ -72,3 +74,13 @@ class Export(Base):
     # Связь с моделью Address
     address = relationship("Address", back_populates="exports")
 
+class Transaction(Base):
+    __tablename__ = 'transactions'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.telegram_id'), nullable=False)  # Ссылка на пользователя
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)  # Сумма транзакции (приход или расход)
+    transaction_type: Mapped[str] = mapped_column(String, nullable=False)  # Тип операции: "income" или "expense"
+    description: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # Описание транзакции
+
+    user = relationship("User", back_populates="transactions")
