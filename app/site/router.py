@@ -74,6 +74,7 @@ async def submit_form(
         session: AsyncSession = Depends(get_session)
 ):
     search = search.strip()
+    address = address.strip()
     # Обработка значения поля weight
     weight_value = float(weight) if weight and weight.strip() else 'Не указан'
 
@@ -97,8 +98,8 @@ async def submit_form(
  # Инициализация address_id с None или с каким-либо значением по умолчанию
     address_id = None
 
-    if address.strip() not in addresses:
-        address_id = await add_address(session, address.strip(), firm_id)
+    if address not in addresses:
+        address_id = await add_address(session, address, firm_id)
     else:
         # Если адрес уже существует, получить его ID
         address_id = await get_address_id_by_name(session, address)
